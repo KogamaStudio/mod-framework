@@ -10,6 +10,7 @@ internal class CommandInterceptor
     [HarmonyPrefix]
     private static bool HandleChat(string chatMsg)
     {
+        if (!CommandManager.Enabled) return true;
         if (chatMsg.StartsWith("/"))
         {
             string[] parts = chatMsg[1..].Split(' ');

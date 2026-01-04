@@ -5,7 +5,7 @@ using UnityEngine;
 using System.Collections;
 using Il2CppMV.WorldObject;
 
-namespace KogamaModFramework.Generation;
+namespace KogamaModFramework.Operations;
 
 public static class CubeOperations
 {

@@ -1,4 +1,4 @@
-﻿namespace KogamaModFramework.Generation;
+﻿namespace KogamaModFramework.Operations;
 
 public class CubeData
 {

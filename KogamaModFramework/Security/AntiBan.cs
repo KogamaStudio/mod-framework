@@ -1,12 +1,20 @@
 ﻿using HarmonyLib;
 using Il2Cpp;
 using Il2CppMV.Common;
+using UnityEngine;
 
 namespace KogamaModFramework.Security;
 
 [HarmonyPatch]
-internal static class AntiBan
+public static class AntiBan
 {
+    public static bool Enabled = false;
+    public static void Initialize()
+    {
+        State.InitializeAllPatches();
+        Enabled = true;
+    }
+
     // tysm beckowl
 
     [HarmonyPatch(typeof(CheatHandling), "Init")]
@@ -19,6 +27,6 @@ internal static class AntiBan
     [HarmonyPatch(typeof(MVNetworkGame.OperationRequests), "Expel")]
     [HarmonyPatch(typeof(MVNetworkGame.OperationRequests), "Kick")]
     [HarmonyPrefix]
-    private static bool NoBan() => false;
+    private static bool NoBan() => !Enabled;
 
 }
