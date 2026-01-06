@@ -14,6 +14,7 @@ namespace KogamaModFramework.UI;
 
 public static class CanvasUI
 {
+    private static List<(RectTransform rect, Image shadow, float height, Vector2 originalPos)> activeButtons = new();
     public static Canvas CreateCanvas()
     {
         var canvasGO = new GameObject("ModCanvas");
@@ -78,12 +79,53 @@ public static class CanvasUI
         textComp.color = Color.white;
         textComp.alignment = TextAnchor.MiddleCenter;
 
+        activeButtons.Add((rectTransform, shadowImage, shadowHeight, pos));
+
         if (onClick != null)
         {
             button.onClick.AddListener(onClick);
         }
 
         return button;
+    }
+
+    private static Button currentPressedButton = null;
+    private static bool effectLost = false;
+
+    public static void UpdateButtonEffect(Button button)
+    {
+        var rect = button.GetComponent<RectTransform>();
+        var shadow = rect.Find("Shadow")?.GetComponent<Image>();
+        if (shadow == null) return;
+
+        var (_, _, height, originalPos) = activeButtons.FirstOrDefault(b => b.rect == rect);
+        Vector2 localMousePos = rect.InverseTransformPoint(Input.mousePosition);
+        float shadowH = rect.sizeDelta.y * (1f / 7f);
+        bool shadowHit = localMousePos.x >= -rect.sizeDelta.x / 2f &&
+                         localMousePos.x <= rect.sizeDelta.x / 2f &&
+                         localMousePos.y < -(rect.sizeDelta.y / 2f) &&
+                         localMousePos.y > -(rect.sizeDelta.y / 2f + shadowH);
+        bool mouseOver = rect.rect.Contains(localMousePos) || shadowHit;
+
+        if (Input.GetMouseButtonDown(0) && mouseOver)
+        {
+            currentPressedButton = button;
+            effectLost = false;
+        }
+
+        if (currentPressedButton == button && !mouseOver)
+            effectLost = true;
+
+        bool shouldPress = currentPressedButton == button && Input.GetMouseButton(0) && mouseOver && !effectLost;
+
+        rect.anchoredPosition = shouldPress ? originalPos + new Vector2(0, -height) : originalPos;
+        shadow.gameObject.SetActive(!shouldPress);
+
+        if (!Input.GetMouseButton(0))
+        {
+            currentPressedButton = null;
+            effectLost = false;
+        }
     }
 
     public static Image CreatePanel(Canvas canvas, Vector2 pos, Vector2 size, Color? color = null)
