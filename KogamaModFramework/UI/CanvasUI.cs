@@ -20,6 +20,7 @@ public static class CanvasUI
         var canvasGO = new GameObject("ModCanvas");
         var canvas = canvasGO.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 100;
         canvasGO.AddComponent<GraphicRaycaster>();
         var scaler = canvasGO.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
@@ -126,6 +127,25 @@ public static class CanvasUI
             currentPressedButton = null;
             effectLost = false;
         }
+    }
+
+    public static Text CreateText(Canvas canvas, string text, Vector2 pos, int fontSize = 28, Font font = null, TextAnchor alignment = TextAnchor.MiddleCenter)
+    {
+        var textGO = new GameObject("Text");
+        textGO.transform.SetParent(canvas.transform, false);
+
+        var rectTransform = textGO.AddComponent<RectTransform>();
+        rectTransform.anchoredPosition = pos;
+        rectTransform.sizeDelta = new Vector2(500, 100);
+
+        var textComp = textGO.AddComponent<Text>();
+        textComp.text = text;
+        textComp.font = font ?? Resources.FindObjectsOfTypeAll<Font>().FirstOrDefault(f => f.name == "OpenSans-Regular");
+        textComp.fontSize = fontSize;
+        textComp.color = Color.white;
+        textComp.alignment = alignment;
+
+        return textComp;
     }
 
     public static Image CreatePanel(Canvas canvas, Vector2 pos, Vector2 size, Color? color = null)

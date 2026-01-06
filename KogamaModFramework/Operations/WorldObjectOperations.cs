@@ -9,12 +9,13 @@ using UnityEngine;
 using KogamaModFramework.Conversion;
 using Il2CppMV.Common;
 using System.Collections;
+using HarmonyLib;
 
 namespace KogamaModFramework.Operations;
 
 public static class WorldObjectOperations
 {
-    private static int RootGroupId => MVGameControllerBase.WOCM?.RootGroup?.Id ?? -1;
+    public static int RootGroupId => MVGameControllerBase.WOCM?.RootGroup?.Id ?? -1;
 
     public static void AddLink(int outputWoId, int inputWoId)
     {
@@ -115,16 +116,30 @@ public static class WorldObjectOperations
 
     public static IEnumerator AddItemToWorld(int itemId, Vector3 position, Quaternion rotation, System.Action<int> callback)
     {
-        int pre = MVGameControllerBase.WOCM.worldObjects.Count;
-        MVGameControllerBase.OperationRequests.AddItemToWorld(itemId, RootGroupId, position, rotation, true, true, false);
+        Vector3 tempPos = new Vector3(UnityEngine.Random.Range(-1000f, 1000f), UnityEngine.Random.Range(-1000f, 1000f), UnityEngine.Random.Range(-1000f, 1000f));
+        Quaternion tempRot = UnityEngine.Random.rotation;
+        int createdId = -1;
 
-        float timeout = Time.time + 2.0f;
-        while (MVGameControllerBase.WOCM.worldObjects.Count == pre && Time.time < timeout)
+        System.Action<int, MVWorldObjectClient> handler = (id, wo) =>
+        {
+            if (wo.itemId == itemId &&
+                Vector3.Distance(wo.Position, tempPos) < 0.1f &&
+                Quaternion.Angle(wo.Rotation, tempRot) < 1f)
+                createdId = id;
+        };
+
+        WorldObjectCreatedPatch.OnWorldObjectCreated += handler;
+        MVGameControllerBase.OperationRequests.AddItemToWorld(itemId, RootGroupId, tempPos, tempRot, true, true, false);
+
+        while (createdId == -1)
             yield return null;
 
-        int nid = -1;
-        foreach (int k in MVGameControllerBase.WOCM.worldObjects.Keys) if (k > nid) nid = k;
-        callback(nid);
+        WorldObjectCreatedPatch.OnWorldObjectCreated -= handler;
+
+        SetPosition(createdId, position);
+        SetRotation(createdId, rotation);
+
+        callback(createdId);
     }
 }
 
