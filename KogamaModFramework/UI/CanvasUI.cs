@@ -191,6 +191,42 @@ public static class CanvasUI
         return image;
     }
 
+    public static Toggle CreateCheckbox(Canvas canvas, Vector2 pos, Vector2 size, System.Action<bool> onChange = null)
+    {
+        if (size == default)
+            size = new Vector2(32, 32);
+
+        var checkboxGO = new GameObject("Checkbox");
+        checkboxGO.transform.SetParent(canvas.transform, false);
+
+        var rectTransform = checkboxGO.AddComponent<RectTransform>();
+        rectTransform.anchoredPosition = pos;
+        rectTransform.sizeDelta = size;
+
+        var bgImage = checkboxGO.AddComponent<Image>();
+        bgImage.color = new Color(0.16f, 0.19f, 0.23f);
+
+        var toggle = checkboxGO.AddComponent<Toggle>();
+        toggle.targetGraphic = bgImage;
+
+        var checkGO = new GameObject("Check");
+        checkGO.transform.SetParent(checkboxGO.transform, false);
+        var checkRect = checkGO.AddComponent<RectTransform>();
+        checkRect.sizeDelta = size;
+
+        var checkImage = checkGO.AddComponent<Image>();
+        var checkTexture = Resources.FindObjectsOfTypeAll<Texture2D>().FirstOrDefault(t => t.name == "icon_check");
+        if (checkTexture != null)
+            checkImage.sprite = Sprite.Create(checkTexture, new Rect(0, 0, checkTexture.width, checkTexture.height), Vector2.zero);
+
+        toggle.graphic = checkImage;
+
+        if (onChange != null)
+            toggle.onValueChanged.AddListener(onChange);
+
+        return toggle;
+    }
+
     public static Image CreateImage(Canvas canvas, Texture2D texture, Vector2 pos, Vector2 size)
     {
         var imageGO = new GameObject("Image");
