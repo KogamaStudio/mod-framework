@@ -10,6 +10,8 @@ using KogamaModFramework.Conversion;
 using Il2CppMV.Common;
 using System.Collections;
 using HarmonyLib;
+using System;
+using Il2CppInterop.Runtime;
 
 namespace KogamaModFramework.Operations;
 
@@ -112,6 +114,14 @@ public static class WorldObjectOperations
 
         wo.Rotation = rotation;
         MVGameControllerBase.OperationRequests.TransferOwnership(woId, 0, wo.Transform);
+    }
+
+    public static void SetVisible(int woId, bool visible)
+    {
+        var wo = GetObject(woId) as MVWorldObjectClient;
+        if (wo == null) return;
+
+        wo.GetType().GetProperty("Visible")?.SetValue(wo, visible);
     }
 
     public static IEnumerator AddItemToWorld(int itemId, Vector3 position, Quaternion rotation, System.Action<int> callback)
